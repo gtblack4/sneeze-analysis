@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 import datefinder
 from collections import Counter
-dateFormat = " %I:%M %p %m/%d/%Y"
+dateFormat = "%I:%M %p %m/%d/%Y"
 timeFormat = "%H:%M"
 dayFormat = "%m/%d/%y"
 
@@ -42,16 +42,32 @@ def sneeziestDay(sneezeData):
 	maxSneeze = [int(),'']
 	for row in range(0,len(sneezeData)):
 		if(sneezeData[row][2]!= sneezeData[row-1][2]):
-			if(int(daySum)>int(maxSneeze[0])):
+			if(int(daySum)>=int(maxSneeze[0])):
 				maxSneeze = daySum,sneezeData[row-1][2]
 			daySum = int(sneezeData[row][0])
 		else:
 			daySum += int(sneezeData[row][0])
-			if(int(daySum)>int(maxSneeze[0])):
+			if(int(daySum)>=int(maxSneeze[0])):
 				maxSneeze = daySum,sneezeData[row-1][2]
 		prevRow = row
 	print('{} had the most sneezes at {}'.format(maxSneeze[1],maxSneeze[0]))
 
+def	sneezeDailyCount(sneezeData):
+	daySum = 0
+	maxSneeze = [int(),'']
+	count = []
+	for row in range(0,len(sneezeData)):
+		if(sneezeData[row][2]!= sneezeData[row-1][2]):
+			count.append(daySum)
+			daySum = int(sneezeData[row][0])
+			
+		else:
+			daySum += int(sneezeData[row][0])
+			#count.append(daySum)
+			
+		prevRow = row
+	print(Counter(count))
+	print(len(count))
 def sneeziestWeek(sneezeData):
 	weekSum = 0
 	weekMax = [0,'']
@@ -94,20 +110,30 @@ def sneezeFits(sneezeData):
 	fitAverage = totalSneeze/int(len(sneezeData))
 	print("There have been {} sneezing fits averaging {} a session".format(int(len(sneezeData)),round(fitAverage,2)))
 	print("The most common number of sneezes in a fit is {} occuring {} times".format(mode[0],mode[1]))
-	print("{0}({1}%) Sneezing fits occured in the morning. {2}({3}%) Sneezing fits occured during lunch. {4}({5}%) Sneezing fits occured in the afternoon.".format(breakDown[0],round(int(breakDown[0])/totalFit*100,2),breakDown[1],round(int(breakDown[1])/totalFit*100,2),breakDown[2],round(int(breakDown[2])/totalFit*100,2)))
+	print(breakDown)
+	formatBreakdown = [breakDown[0],round(int(breakDown[0])/totalFit*100,2),
+	breakDown[1],round(int(breakDown[1])/totalFit*100,2),
+	breakDown[2],round(int(breakDown[2])/totalFit*100,2),
+	breakDown[3],round(int(breakDown[3])/totalFit*100,2)]
+	print(formatBreakdown)
+	print("{0}({1}%) Sneezing fits occured between 10:00PM and 6:00AM. {2}({3}%) Sneezing fits occured between 6:00AM and 12:00PM. {4}({5}%) Sneezing fits occured in Between 12:00PM and 4:00PM. {6}({7}%) Sneezing Fits occured between 4:00PM and 10:00PM".format(formatBreakdown[0],formatBreakdown[1],formatBreakdown[2],formatBreakdown[3],formatBreakdown[4],formatBreakdown[5],formatBreakdown[6],formatBreakdown[7]))
 	
 
 	
 
 def sneezeHourly(sneezeData):
-	breakDown = [0,0,0]
+	breakDown = [0,0,0,0]
 	for row in sneezeData:
-		if(row[1] < '11:45'):
+		if(row[1] < '05:00'):
 			breakDown[0] += 1
-		elif(row[1] >= '11:45' and row[1] <= '13:15'):
+		elif(row[1] >= '05:00' and row[1] <= '11:00'):
 			breakDown[1] += 1
-		elif(row[1] > '13:15'):
-			breakDown[2] += 1	
+		elif(row[1] > '11:00' and row[1] <= '17:00'):
+			breakDown[2] += 1
+		elif(row[1] > '17:00' and row[1] <= '23:00'):
+			breakDown[3] += 1	
+		elif(row[1] > '23:00'):
+			breakDown[0] += 1	
 	return breakDown
 
 def sneezeLessDays(sneezeData):
@@ -121,10 +147,15 @@ def sneezeLessDays(sneezeData):
 	sneezeDays = Counter(sneezeDays)
 	for x in sneezeDays:
 		numDays +=1
-	percentDays = round(100-(int(numDays)/int(workingDays)*100),2)
-	print("There have been {} working days since 10/9/19, and {} days have had sneezes. Which means there are {}({}%) sneezeless days".format(workingDays,numDays,int(workingDays)-int(numDays),percentDays))
+	
+	realPercent = round(numDays / 365,3)*100
+	percentDays = round(100-(int(numDays)/int(365)*100),2)
+	sneezePercent = round((int(numDays)/int(365)*100),2)
+	sneezelessday = 365- numDays
+	
+	print("There have been 365 days since 1/1/20, and {}({}%) days have had sneezes. Which means there are {}({}%) sneezeless days".format(numDays,sneezePercent,int(sneezelessday),percentDays))
 
-with open(os.path.join('C:\\Users\\gblack\\Desktop','Sneezes.txt')) as csvFile:
+with open(os.path.join('C:\\Users\\Gage\\Downloads\\sneezeAnalysis-master\\sneezeAnalysis-master','Sneezes.txt')) as csvFile:
 	sneezeCSV = csv.reader(csvFile, delimiter=',')
 	sneezeArray = []
 	for row in sneezeCSV:
@@ -135,6 +166,10 @@ with open(os.path.join('C:\\Users\\gblack\\Desktop','Sneezes.txt')) as csvFile:
 		week = datetime.strptime(date,dayFormat).isocalendar()[1]
 		appendthis = row[0],time,date,week
 		sneezeArray.append(appendthis)
+
+
+
+
 sneezeCount(sneezeArray)
 sneezeFits(sneezeArray)
 sneeziestDay(sneezeArray)
@@ -142,5 +177,6 @@ sneeziestWeek(sneezeArray)
 sneeziestMonth(sneezeArray)
 sneezeHourly(sneezeArray)
 sneezeLessDays(sneezeArray)
+sneezeDailyCount(sneezeArray)
 
 
